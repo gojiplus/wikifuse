@@ -17,6 +17,8 @@ def _get_modi_qid() -> str:
             "language": "en",
             "format": "json",
         },
+        # Wikimedia refuses requests without a descriptive User-Agent (403).
+        headers={"User-Agent": "wikifuse-tests (https://github.com/gojiplus/wikifuse)"},
         timeout=10,
     )
     resp.raise_for_status()
@@ -28,8 +30,8 @@ def test_fetch_command_real(tmp_path):
     """Fetch command should retrieve Narendra Modi articles in en and hi."""
     try:
         qid = _get_modi_qid()
-    except Exception:
-        pytest.skip("Wikidata search unavailable")
+    except (requests.ConnectionError, requests.Timeout) as exc:
+        pytest.skip(f"Wikidata search unreachable: {exc}")
 
     runner = CliRunner()
     out_dir = tmp_path / "data"
